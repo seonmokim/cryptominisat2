@@ -143,6 +143,8 @@ public:
     bool    addLearntClause(T& ps, const uint32_t glue = 10, const float miniSatActivity = 10.0);
     template<class T>
     bool    addXorClause (T& ps, bool xorEqualFalse) throw (std::out_of_range);  // Add a xor-clause to the solver. NOTE! 'ps' may be shrunk by this method!
+    template<class T>
+        bool addIndependentSet(T & ps);
 
     // Solving:
     //
@@ -167,6 +169,7 @@ public:
     uint32_t     nLiterals  ()      const;         ///<The current number of total literals.
     uint32_t     nLearnts   ()      const;         ///<The current number of learnt clauses.
     uint32_t     nVars      ()      const;         ///<The current number of variables.
+    uint32_t nOrigVars() const;
 
     // Extra results: (read-only member variable)
     //
@@ -232,6 +235,11 @@ public:
     */
     double   getTotalTimeXorSubsumer() const;
 
+    /**
+     * Independent Set
+     */
+    vec<Var> independentSet; ///< Set of independent variables
+
 protected:
     //gauss
     bool clearGaussMatrixes();
@@ -241,6 +249,7 @@ protected:
     uint32_t sum_gauss_confl;
     uint32_t sum_gauss_prop;
     uint32_t sum_gauss_unit_truths;
+    uint32_t origVars;
 
     // Statistics
     //
@@ -721,6 +730,11 @@ inline uint32_t      Solver::nClauses      ()      const
 {
     return clauses.size() + xorclauses.size();
 }
+
+inline uint32_t Solver::nOrigVars() const {
+        return origVars;
+}
+
 inline uint32_t      Solver::nLiterals      ()      const
 {
     return clauses_literals + learnts_literals;

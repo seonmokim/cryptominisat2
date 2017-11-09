@@ -652,6 +652,32 @@ bool Solver::addLearntClause(T& ps, const uint32_t glue, const float miniSatActi
 template bool Solver::addLearntClause(vec<Lit>& ps, const uint32_t glue, const float miniSatActivity);
 template bool Solver::addLearntClause(Clause& ps, const uint32_t glue, const float miniSatActivity);
 
+/***
+ Adds the independent set, should be called only once
+
+ */
+template<class T>
+bool Solver::addIndependentSet(T & ps) {
+    origVars = nVars();
+    if (ps.size() == 0) {
+        for (Var i = 0; i != nVars(); i++) {
+            independentSet.push(i);
+        }
+        return true;
+    }
+
+    vector<lbool> *independentSetTrack = new vector<lbool> (assigns.size(), l_Undef);
+    for (uint32_t i = 0; i != ps.size(); i++) {
+        if ((*independentSetTrack)[ps[i]] == l_Undef) {
+            independentSet.push(ps[i]);
+            (*independentSetTrack)[ps[i]] = l_True;
+        }
+    }
+    free(independentSetTrack);
+    return ok;
+}
+template bool Solver::addIndependentSet(vec<Var> & ps);
+
 
 /**
 @brief Attaches an xor clause to the watchlists

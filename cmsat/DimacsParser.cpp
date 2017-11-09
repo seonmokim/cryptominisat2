@@ -183,6 +183,25 @@ void DimacsParser::readClause(StreamBuffer& in, vec<Lit>& lits) throw (DimacsPar
 }
 
 /**
+ * 
+ * @param in
+ * @return 
+ * @breif Reads in and puts the variables in the independent set
+ */
+void DimacsParser::parseIndependentSet(StreamBuffer& in) {
+    int32_t parsed_lit;
+    Var var;
+    uint32_t len;
+    for (;;) {
+        parsed_lit = parseInt(in, len);
+        if (parsed_lit == 0) break;
+        var = abs(parsed_lit) - 1;
+        varVector.push(var);
+    }
+
+}
+
+/**
 @brief Matches parameter "str" to content in "in"
 */
 bool DimacsParser::match(StreamBuffer& in, const char* str)
@@ -315,6 +334,8 @@ void DimacsParser::parseComments(StreamBuffer& in, const std::string str) throw 
         #ifdef DEBUG_COMMENT_PARSING
         std::cout << "Parsed Solver::newVar()" << std::endl;
         #endif //DEBUG_COMMENT_PARSING
+    } else if (str == "ind") { //parsing the independent variables
+        parseIndependentSet(in);
     } else {
         #ifdef DEBUG_COMMENT_PARSING
         std::cout << "didn't understand in CNF file: 'c " << str << std::endl;
@@ -523,6 +544,7 @@ void DimacsParser::parse_DIMACS(T input_stream)
 
     StreamBuffer in(input_stream);
     parse_DIMACS_main(in);
+    solver->addIndependentSet(varVector);
 
     if (solver->conf.verbosity >= 1) {
         std::cout << "c -- clauses added: "

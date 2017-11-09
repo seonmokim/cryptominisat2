@@ -762,11 +762,21 @@ int Main::singleThreadSolve()
 
     parseInAllFiles(solver);
     FILE* res = openOutputFile();
+    std::cout << solver.independentSet.size() << std::endl;
 
     unsigned long current_nr_of_solutions = 0;
     lbool ret = l_True;
+    Var activationVar = solver.newVar();
+    vec<Lit> allSATAssumptions;
+    vec<Lit> assumptions;
+    if (!assumptions.empty()) {
+        assumptions.copyTo(allSATAssumptions);
+    }
+
+    allSATAssumptions.push(Lit(activationVar, true));
+
     while(current_nr_of_solutions < max_nr_of_solutions && ret == l_True) {
-        ret = solver.solve();
+        ret = solver.solve(allSATAssumptions);
         current_nr_of_solutions++;
 
         if (ret == l_True && current_nr_of_solutions < max_nr_of_solutions) {
@@ -779,13 +789,21 @@ int Main::singleThreadSolve()
                 << std::setw(6) << current_nr_of_solutions
                 << std::endl;
             }
-
             vec<Lit> lits;
+            lits.push(Lit(activationVar, false));
+            for (uint32_t j = 0; j < solver.independentSet.size(); j++) {
+                Var var = solver.independentSet[j];
+                if (solver.model[var] != l_Undef) {
+                    lits.push(Lit(var, (solver.model[var] == l_True) ? true : false));
+                }
+            }
+            /*
             for (Var var = 0; var != solver.nVars(); var++) {
                 if (solver.model[var] != l_Undef) {
                     lits.push( Lit(var, (solver.model[var] == l_True)? true : false) );
                 }
             }
+            */
             solver.addClause(lits);
         }
     }
